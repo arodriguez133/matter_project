@@ -1,28 +1,33 @@
 import Matter from 'matter-js';
-function component(){
-  const {
-    Engine,
-    Render,
-    Runner,
-    Bodies,
-    Composite
-  } = Matter;
+import { createCanvas, getContext2d, clearCanvas, drawBodies, mountCanvas } from './canvas.js';
 
-  var engine = Engine.create();
+const CANVAS_WIDTH = 800;
+const CANVAS_HEIGHT = 600;
 
-  var render = Render.create({
-    element: document.body,
-    engine: engine
-  });
+const createWorldBodies = (Bodies) => [
+  Bodies.rectangle(400, 200, 80, 80),
+  Bodies.rectangle(450, 50, 80, 80),
+  Bodies.rectangle(400, 610, 810, 60, { isStatic: true }),
+];
 
-  var boxA = Bodies.rectangle(400,200,80,80);
-  var boxB = Bodies.rectangle(450, 50,80,80);
-  var ground = Bodies.rectangle(400,610, 810,60 ,{isStatic:true});
-  Composite.add(engine.world, [boxA, boxB, ground]);
+const render = (context, engine) => {
+  clearCanvas(context, CANVAS_WIDTH, CANVAS_HEIGHT);
+  drawBodies(context, engine.world.bodies);
+  requestAnimationFrame(() => render(context, engine));
+};
 
-  Render.run(render);
-  var runner = Runner.create();
+const main = (() => {
+  const { Engine, Runner, Bodies, Composite } = Matter;
+
+  const engine = Engine.create();
+  Composite.add(engine.world, createWorldBodies(Bodies));
+
+  const canvas = createCanvas(CANVAS_WIDTH, CANVAS_HEIGHT);
+  const context = getContext2d(canvas);
+  mountCanvas(canvas);
+
+  const runner = Runner.create();
   Runner.run(runner, engine);
-}
 
-document.body.appendChild(component());
+  render(context, engine);
+})();
